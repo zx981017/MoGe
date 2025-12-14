@@ -15,6 +15,9 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch import nn
 
+from spas_sage_attn import spas_sage2_attn_meansim_topk_cuda
+
+
 
 logger = logging.getLogger("dinov2")
 
@@ -74,6 +77,8 @@ class Attention(nn.Module):
         q, k, v = qkv.unbind(0)      # (B, H, N, C // H)
 
         x = F.scaled_dot_product_attention(q, k, v, attn_bias)
+        x = spas_sage2_attn_meansim_topk_cuda(q, k, v, topk=0.5, is_causal=False) # is_causal can be True
+
         x = x.permute(0, 2, 1, 3).reshape(B, N, C) 
 
         x = self.proj(x)
